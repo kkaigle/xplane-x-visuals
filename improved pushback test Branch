@@ -1,6 +1,11 @@
 -- Define default values
 local pushDistance = 50  -- Initial distance in meters
 local pushAngle = 180    -- Initial angle in degrees (180 means straight back)
+local turnPointX = 0     -- X-coordinate where the tug should turn
+local turnPointY = 0     -- Y-coordinate where the tug should turn
+
+-- Variable to track whether the tug has reached the turn point
+local reachedTurnPoint = false
 
 -- Function to convert degrees to radians
 function degToRad(degrees)
@@ -28,16 +33,32 @@ function startPushback()
     end
 end
 
+-- Function to check if tug should turn left or right
+function checkTurnDirection(currentX, currentY)
+    if not reachedTurnPoint and currentX >= turnPointX then
+        reachedTurnPoint = true
+        if pushAngle == 180 then
+            pushAngle = 90  -- Turn right if initially straight back
+        elseif pushAngle == 0 then
+            pushAngle = 270  -- Turn left if initially straight forward
+        end
+        logMsg("Tug will turn at point (" .. turnPointX .. ", " .. turnPointY .. ").")
+    end
+end
+
 -- Function to update pushback parameters
 function updatePushbackParams(distance, angle)
     pushDistance = distance
     pushAngle = angle
+    reachedTurnPoint = false  -- Reset turn point status
     logMsg("Pushback parameters updated: Distance = " .. pushDistance .. "m, Angle = " .. pushAngle .. " degrees.")
 end
 
 -- UI Datarefs
 create_dataref("pushback/distance", "number", pushDistance, "Pushback Distance (m)")
 create_dataref("pushback/angle", "number", pushAngle, "Pushback Angle (degrees)")
+create_dataref("pushback/turn_point_x", "number", turnPointX, "Turn Point X-coordinate")
+create_dataref("pushback/turn_point_y", "number", turnPointY, "Turn Point Y-coordinate")
 
 -- Command for starting pushback
 create_command("flywithlua/start_pushback", "Start Pushback", "startPushback()")
@@ -48,4 +69,8 @@ create_command("flywithlua/update_pushback_params", "Update Pushback Parameters"
 
 -- Example UI: Replace with actual UI elements as per X-Plane's Lua UI capabilities
 logMsg("Pushback script loaded. Adjust pushback parameters using custom datarefs 'pushback/distance' and 'pushback/angle'.")
+logMsg("Set the turn point coordinates using 'pushback/turn_point_x' and 'pushback/turn_point_y'.")
 logMsg("Use the command 'Start Pushback' to initiate pushback.")
+
+-- Loop to check turn point and adjust pushback direction
+do_every_frame("checkTurnDirection(get(sim/flightmodel/position/local_x), get(sim/flightmodel/position/local_y))")
