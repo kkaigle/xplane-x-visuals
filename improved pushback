@@ -1,0 +1,32 @@
+-- Define the distance and angle for pushback
+local pushDistance = 50  -- Distance in meters
+local pushAngle = 180    -- Angle in degrees (0 is north, 90 is east, etc.)
+
+-- Function to convert degrees to radians
+function degToRad(degrees)
+    return degrees * math.pi / 180
+end
+
+-- Function to calculate new position based on pushback
+function calculatePushbackPosition(startX, startY, distance, angle)
+    local angleRad = degToRad(angle)
+    local deltaX = distance * math.sin(angleRad)
+    local deltaY = distance * math.cos(angleRad)
+    return startX + deltaX, startY + deltaY
+end
+
+-- Function to initiate pushback
+function startPushback()
+    local startX, startY, startZ = getSimLocation()
+
+    if startX and startY and startZ then
+        local endX, endY = calculatePushbackPosition(startX, startY, pushDistance, pushAngle)
+        setSimLocation(endX, endY, startZ)
+        logMsg("Pushback completed successfully.")
+    else
+        logMsg("Failed to get current aircraft position.")
+    end
+end
+
+-- Entry point
+do_every_frame("startPushback()")
