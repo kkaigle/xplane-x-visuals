@@ -1,0 +1,36 @@
+-- Load ImGui library
+if (not ig) then
+    require("imgui")
+end
+
+-- Define variables
+local windowVisible = true  -- Initial visibility of the window
+local windowSize = { width = 400, height = 300 }  -- Initial size of the window
+
+-- ImGui window function
+function drawWindow()
+    imgui.Begin("External Window", windowVisible)
+
+    -- Add ImGui elements here
+    imgui.Text("Hello, this is an external window!")
+
+    imgui.End()
+end
+
+-- FlyWithLua callback function to draw the ImGui window
+function draw()
+    imgui.BeginFrame()
+
+    -- Adjust window position if needed
+    local windowFlags = ImGuiWindowFlags_NoResize + ImGuiWindowFlags_NoCollapse
+    imgui.SetNextWindowPos(50, 50, ImGuiCond_FirstUseEver)
+    imgui.SetNextWindowSize(windowSize.width, windowSize.height, ImGuiCond_FirstUseEver)
+
+    -- Draw the ImGui window
+    drawWindow()
+
+    imgui.Render()
+end
+
+-- Register FlyWithLua callback for drawing
+do_every_draw("draw()")
